@@ -39,3 +39,21 @@ def fake_decode_token(token):
     )
 
 
+@app.get("/profile")
+async def get_profile():
+    profile = await db["profile"].find().to_list(999)
+    if len(profile) < 1:
+        return {}
+    return profile[0]
+
+
+@app.post("/profile",status_code=201)
+async def create_new_profile(request:Request):
+    
+    profile_obj = await request.json()
+    profile_obj["last_updated"]=datetime.now()
+
+    new_profile = await db["profile"].insert_one(profile_obj)
+    latest_profile = await db["profile"].find_one({"_id": new_profile.inserted_id})
+
+    return latest_profile
