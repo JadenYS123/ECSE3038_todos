@@ -66,6 +66,9 @@ async def create_new_profile(request:Request):
 
     return created_tank
 
-    
+@app.get("/data")
+async def retrieve_tanks():
+    tanks = await db["tank"].find().to_list(999)
+    return tanks
 
 
