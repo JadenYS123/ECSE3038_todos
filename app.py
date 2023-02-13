@@ -57,3 +57,15 @@ async def create_new_profile(request:Request):
     latest_profile = await db["profile"].find_one({"_id": new_profile.inserted_id})
 
     return latest_profile
+@app.post("/data",status_code=201)
+async def create_new_profile(request:Request):
+    tank_obj = await request.json()
+
+    new_tank = await db["tank"].insert_one(tank_obj)
+    created_tank = await db["tank"].find_one({"_id": new_tank.inserted_id})
+
+    return created_tank
+
+    
+
+
