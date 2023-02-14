@@ -5,11 +5,10 @@ import pydantic
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
-
+import datetime
 app = FastAPI()
 
 origins = [
-    "http://localhost.80000",
     "https://ecse3038-lab3-tester.netlify.app"
 ]
 
@@ -20,7 +19,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://jaden123:Jaden123@ac-3wetz71-shard-00-00.js0j7bp.mongodb.net:27017,ac-3wetz71-shard-00-01.js0j7bp.mongodb.net:27017,ac-3wetz71-shard-00-02.js0j7bp.mongodb.net:27017/?ssl=true&replicaSet=atlas-12i224-shard-0&authSource=admin&retryWrites=true&w=majority")
+client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://jaden123:Jaden123@ac-3wetz71-shard-00-00.js0j7bp.mongodb.net:27017,ac-3wetz71-shard-00-01.js0j7bp.mongodb.net:27017,ac-3wetz71-shard-00-02.js0j7bp.mongodb.net:27017/?ssl=true&replicaSet=atlas-12i224-shard-0&authSource=admin&retryWrites=true&w=majority", tls=True, tlsAllowInvalidCertificates=True)
 db = client.todo_list
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
@@ -71,4 +70,29 @@ async def retrieve_tanks():
     tanks = await db["tank"].find().to_list(999)
     return tanks
 
+@app.delete("/data/{id}",status_code=204)
+async def delete_tank(id: str):
 
+    found= await db["tank"].find_one({"_id": ObjectId(id)})
+    if (found) is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    remove_tank= await db["tank"].delete_one({"_id":ObjectId(id)})
+
+    return {"message":"ITEM WAS DELETED "}
+
+    
+    
+
+@app.patch("/data/{id}")
+async def do_update(id:str, request: Request):
+    updated= await request.json()
+    result = await db["tank"].update_one({"_id":ObjectId(id)}, {'$set': updated})
+    
+    if result.modified_count == 1:
+         if (
+                updated_tank := await db["tank"].find_one({"_id": id})
+            ) is not None:
+                return updated_tank   
+    else:
+         raise HTTPException(status_code=404, detail="Item not found")
