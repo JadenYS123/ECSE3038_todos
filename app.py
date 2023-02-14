@@ -5,10 +5,11 @@ import pydantic
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
-import datetime
+from datetime import datetime
 app = FastAPI()
 
 origins = [
+    "http://localhost.80000",
     "https://ecse3038-lab3-tester.netlify.app"
 ]
 
